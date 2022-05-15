@@ -1,0 +1,31 @@
+- name: Deploy Uptimekuma
+  hosts: docker
+  become: true
+  gather_facts: no
+  tasks:
+    - name: Install PIP
+      ansible.builtin.package:
+        name: python3-pip
+        update_cache: true
+        state: present
+    - name: Install Docker SDK for Python
+      ansible.builtin.pip:
+        name:
+          - docker>=1.8.0
+          - PyYAML>=3.11
+          - docker-compose>1.7.0,<2.0.0
+        state: present 
+    - name: Create proj directory
+      ansible.builtin.file:
+        path: /root/uptimekuma
+        state: directory
+    - name: Copy compose file over
+      ansible.builtin.copy:
+        src: ./docker-compose.yaml
+        dest: /root/uptimekuma/docker-compose.yaml
+    - name: Create and start service
+      community.docker.docker_compose:
+        project_src: /root/uptimekuma
+        project_name: uptimekuma
+        pull: yes
+        state: present
